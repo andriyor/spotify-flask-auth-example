@@ -1,9 +1,10 @@
 import os
 import json
 import base64
-from urllib import urlencode
+from urllib.parse import urlencode
+import pprint
 
-from flask import Flask, request, redirect, g, render_template
+from flask import Flask, request, redirect, render_template, jsonify
 import requests
 
 # Authentication Steps, paramaters, and responses are defined at https://developer.spotify.com/web-api/authorization-guide/
@@ -44,6 +45,11 @@ auth_query_parameters = {
 
 @app.route("/")
 def index():
+    return render_template('login.html')
+
+
+@app.route("/login")
+def login():
     # Auth Step 1: Authorization
     url_args = urlencode(auth_query_parameters)
     auth_url = "{}/?{}".format(SPOTIFY_AUTH_URL, url_args)
@@ -83,16 +89,31 @@ def callback():
     playlist_api_endpoint = "{}/playlists".format(profile_data["href"])
     playlists_response = requests.get(playlist_api_endpoint, headers=authorization_header)
     playlist_data = json.loads(playlists_response.text)
+    pprint.pprint(playlist_data)
 
     # Get the User's Currently Playing Track
     currently_playing_api_endpoint = "{}/me/player/currently-playing".format(SPOTIFY_API_URL)
     currently_playing_response = requests.get(currently_playing_api_endpoint, headers=authorization_header)
     currently_playing_data = json.loads(currently_playing_response.text)
-    print(currently_playing_data)
+    pprint.pprint(currently_playing_data)
 
     # Combine profile and playlist data to display
-    display_arr = [profile_data] + playlist_data["items"]
-    return render_template("index.html", sorted_array=display_arr)
+    return render_template("user_profile.html", profile_data=profile_data, response_data=response_data)
+
+
+@app.route("/refresh_token", methods=['POST'])
+def refresh_token():
+    # 7. Requesting access token from refresh token
+    refresh_token = request.form['refresh_token']
+    code_payload = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token
+    }
+    base64encoded = base64.b64encode(bytes("{}:{}".format(CLIENT_ID, CLIENT_SECRET), 'utf-8'))
+    headers = {"Authorization": "Basic {}".format(base64encoded.decode('utf-8'))} 
+    post_request = requests.post(SPOTIFY_TOKEN_URL, data=code_payload, headers=headers)
+    response_data = json.loads(post_request.text)
+    return jsonify(response_data)
 
 
 if __name__ == "__main__":

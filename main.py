@@ -1,5 +1,5 @@
 import json
-from flask import Flask, request, redirect, g, render_template
+from flask import Flask, request, redirect, render_template
 import requests
 import base64
 import urllib

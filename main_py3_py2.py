@@ -3,7 +3,7 @@ import json
 import base64
 import sys
 
-from flask import Flask, request, redirect, g, render_template
+from flask import Flask, request, redirect, render_template
 import requests
 
 try:
@@ -116,7 +116,6 @@ def callback():
     # Combine profile and playlist data to display
     display_arr = [profile_data] + playlist_data["items"]
     return render_template("index.html", sorted_array=display_arr)
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=PORT)

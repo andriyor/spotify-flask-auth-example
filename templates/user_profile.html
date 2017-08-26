@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Example of the Authorization Code flow with Spotify</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <style type="text/css">
+        .text-overflow {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Logged in as {{profile_data.display_name|string}}</h1>
+        <div class="media">
+            <div class="pull-left">
+                <img class="media-object" width="150" src="{{profile_data.images.0.url}}" />
+            </div>
+            <div class="media-body">
+                <dl class="dl-horizontal">
+                    <dt>Display name</dt>
+                    <dd class="clearfix">{{profile_data.display_name|string}}</dd>
+                    <dt>Id</dt>
+                    <dd>{{profile_data.id}}</dd>
+                    <dt>Email</dt>
+                    <dd>{{profile_data.email}}</dd>
+                    <dt>Spotify URI</dt>
+                    <dd><a href="{{profile_data.external_urls.spotify}}"></a></dd>
+                    <dt>Link</dt>
+                    <dd><a href="{{profile_data.href}}">{{profile_data.href}}</a></dd>
+                    <dt>Profile Image</dt>
+                    <dd class="clearfix"><a href="{{profile_data.images.0.url}}">{{profile_data.images.0.url}}</a></dd>
+                    <dt>Country</dt>
+                    <dd>{{profile_data.country}}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <h2>oAuth info</h2>
+        <dl class="dl-horizontal">
+            <dt>Access token</dt>
+            <dd class="text-overflow" id="access_token">{{response_data.access_token}}</dd>
+            <dt>Refresh token</dt>
+            <dd class="text-overflow" id="access_token">{{response_data.refresh_token}}></dd>
+
+        </dl>
+
+        <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
+    </div>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+    <script>
+        var r = {{response_data|safe }};
+        localStorage.setItem("access_token", r.access_token);
+        localStorage.setItem("refresh_token", r.refresh_token);
+
+        document.getElementById("obtain-new-token").addEventListener('click', function () {
+            $.post("/refresh_token", { refresh_token: localStorage.getItem("refresh_token") }, (data) => {
+                localStorage.setItem("access_token", data.access_token);
+                $("#access_token").text(data.access_token);
+            });
+        }, false);
+    </script>
+</body>
+
+</html>
